@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "WebSocket Persisnt Connection Example",
+  "description": "This extension demonstrates how to establish a persistent WebSocket connection.",
+  "version": "1.0",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon-16.png",
+      "48": "images/icon-48.png",
+      "128": "images/icon-128.png"
+    }
+  }
+}
