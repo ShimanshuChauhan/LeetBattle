@@ -4,14 +4,38 @@ let user = {
   currentRoomId: null
 };
 
+let ws;
 // Create a WebSocket connection to the server
 function connectToSever() {
-  const ws = new WebSocket('ws://localhost:8080');
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    return; // Alredy connected
+  }
+  ws = new WebSocket('ws://localhost:8080');
 
   ws.onopen = () => {
     console.log('Connected to server');
   };
+
+  ws.onclose = (event) => {
+    console.log('Websocket closed');
+  }
 }
+
+// When service worker starts or reloads connect user again
+chrome.runtime.onStartup.addListener(() => {
+  console.log("Service worker started or reloaded");
+  chrome.storage.local.get('user', (data) => {
+    if (chrome.runtime.lastError) {
+      console.log('Error fetching the user during startup');
+    } else {
+      if (data.user) {
+        // user exists
+        connectToSever();
+      }
+    }
+  })
+  connectToSever();
+})
 
 // Keep the service worker alive
 function keepAlive() {
@@ -73,6 +97,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     });
     return true;  // Keep the message channel open for async response
+  }
+
+  // Create new room
+  if (message.type === 'create_room') {
+
   }
 
   // Keep Alive

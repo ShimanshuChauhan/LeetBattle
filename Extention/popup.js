@@ -1,3 +1,4 @@
+// Show according to the login status
 document.addEventListener('DOMContentLoaded', function () {
   function checkLoginStatus() {
     chrome.runtime.sendMessage({ type: 'checkLoginStatus' }, function (response) {
@@ -12,6 +13,8 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   }
+  checkLoginStatus();
+
 
   // Sign up
   const signUpButton = document.getElementById('sign_up');
@@ -50,5 +53,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  checkLoginStatus();
+  // Create a new room
+  const createRoomButton = document.getElementById('create_room');
+  createRoomButton.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ type: 'createNewRoom' }), function (response) {
+
+    }
+  })
+
 });

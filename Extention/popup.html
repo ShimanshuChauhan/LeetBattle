@@ -5,13 +5,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      width: 400px;
+      /* Increase the width of the popup */
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    #logged_in,
+    #logged_out {
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px 0;
+      cursor: pointer;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      box-sizing: border-box;
+    }
+  </style>
 </head>
 
 <body>
   <div id="logged_in" style="display:none;">
     <h2>Welcome to 1v1 DSA Battle</h2>
     <p>Challenge your friends for a friendly battle of DSA</p>
-    <button>Create Room</button>
+    <input type="text" id="question_url" name="question_url" placeholder="Question URL">
+    <button id="create_room">Create Room</button>
     <br><br>
     <button>Join Room</button>
     <br><br>
