@@ -56,9 +56,26 @@ document.addEventListener('DOMContentLoaded', function () {
   // Create a new room
   const createRoomButton = document.getElementById('create_room');
   createRoomButton.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ type: 'createNewRoom' }), function (response) {
+    const questionUrl = document.getElementById('question_url').value;
+    chrome.runtime.sendMessage({ type: 'create_room', data: { questionUrl } }, function (response) {
+      if (!response.success) {
+        alert(response.message);
+      }
+    });
+  });
 
-    }
-  })
+});
 
+
+// Keeping the service worker active
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'keep_alive') {
+    sendResponse({ status: 'alive' });
+    return true;  // Keep the message channel open for async response
+  }
+
+  if (message.type === 'room_created') {
+    const { roomId } = message.data;
+    alert(`Room created with id: ${roomId}`);
+  }
 });

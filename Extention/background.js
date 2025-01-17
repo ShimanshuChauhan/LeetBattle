@@ -1,7 +1,8 @@
 let user = {
   userId: null,
   userName: null,
-  currentRoomId: null
+  currentRoomId: null,
+  inRoom: false
 };
 
 let ws;
@@ -10,6 +11,12 @@ function connectToSever() {
   if (ws && ws.readyState === WebSocket.OPEN) {
     return; // Alredy connected
   }
+
+  if (ws && ws.readyState === WebSocket.CONNECTING) {
+    console.log('Already attempting to connect');
+    return; // Wait for the connection to establish
+  }
+
   ws = new WebSocket('ws://localhost:8080');
 
   ws.onopen = () => {
@@ -19,6 +26,32 @@ function connectToSever() {
   ws.onclose = (event) => {
     console.log('Websocket closed');
   }
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log("Message from server", data);
+
+    if (data.type === 'room_created') {
+      const { roomId } = data;
+      user = { ...user, currentRoomId: roomId, inRoom: true };
+
+      // Save updated user to local storage
+      chrome.storage.local.set({ user }, () => {
+        if (chrome.runtime.lastError) {
+          console.error('Error saving updated user to local storage:', chrome.runtime.lastError);
+        } else {
+          console.log('Updated user saved successfully:', user);
+
+          // Send message to popup.js
+          chrome.runtime.sendMessage({ type: 'room_created', data: { roomId } });
+        }
+      });
+    }
+  }
+
+  ws.onerror = (error) => {
+    console.error('WebSocket error:', error);
+  };
 }
 
 // When service worker starts or reloads connect user again
@@ -92,6 +125,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.error('Error removing user from local storage:', chrome.runtime.lastError);
         sendResponse({ success: false, message: chrome.runtime.lastError.message });
       } else {
+        user = {
+          userId: null,
+          userName: null,
+          currentRoomId: null,
+          inRoom: false
+        };
         console.log('User removed successfully');
         sendResponse({ success: true });
       }
@@ -101,7 +140,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // Create new room
   if (message.type === 'create_room') {
+    if (user.inRoom) {
+      sendResponse({ success: false, message: "User is already in a room" });
+      return;
+    }
 
+    if (ws.readyState !== WebSocket.OPEN) {
+      sendResponse({ success: false, message: "Room creation request failed. Unable to connect to server" });
+      return;
+    }
+
+    const { questionUrl } = message.data;
+    const dataToSend = {
+      type: 'create_room',
+      data: {
+        user, questionUrl
+      }
+    }
+
+    ws.send(JSON.stringify(dataToSend));
   }
 
   // Keep Alive
